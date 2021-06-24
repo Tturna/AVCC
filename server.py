@@ -1,0 +1,152 @@
+import selectors
+import socket
+import types
+import time
+import os
+from pythonosc.udp_client import SimpleUDPClient
+import keyboard
+from simplecoremidi import send_midi
+
+sel = selectors.DefaultSelector()
+# ...
+host = "192.168.8.107"
+port = 9999
+message = ""
+xyz = [0, 0, 0]
+
+# midi stuff
+midiChannel = 1
+note_on_action = 0x90
+velocity = 127
+
+lsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+lsock.bind((host, port))
+lsock.listen()
+print('listening on', (host, port))
+lsock.setblocking(False)
+sel.register(lsock, selectors.EVENT_READ, data=None)
+
+# Set up an OSC Client to send data to Wekinator
+oscClient = SimpleUDPClient("127.0.0.1", 9998)
+lastY = 0
+
+def SendOSCMessage(xyz):
+    global lastY
+
+    """
+    try:
+        # Check if the board was whacked like a drum stick
+        thresh = 300.0
+
+        print("test")
+        if (abs(float(xyz[1])) >= thresh and abs(lastY) < thresh):
+            print("------------------------------Sending OSC...")
+            oscClient.send_message("/wek/inputs", 1)
+        
+        lastY = float(xyz[1])
+    except Exception as e:
+        print("Failed to send OSC.")
+        print(e)
+    """
+
+    # Send accelerometer data to wekinator
+    oscClient.send_message("/wek/inputs", (xyz[0] + 0.0, xyz[1] + 0.0, xyz[2] + 0.0))
+
+def accept_wrapper(sock):
+    conn, addr = sock.accept()  # Should be ready to read
+    print('accepted connection from', addr)
+    conn.setblocking(False)
+    data = types.SimpleNamespace(addr=addr, inb=b'', outb=b'')
+    events = selectors.EVENT_READ | selectors.EVENT_WRITE
+    sel.register(conn, events, data=data)
+
+def service_connection(key, mask):
+    global message
+    global xyz
+
+    sock = key.fileobj
+    data = key.data
+    if mask & selectors.EVENT_READ:
+        try:
+            recv_data = sock.recv(512)  # Should be ready to read
+        except Exception as e:
+            print(e)
+            recv_data = None
+
+        if recv_data: # Message has been read
+            data.outb += recv_data
+            message += str(repr(data.outb))[1:]
+
+            # Message processor
+            dotCount = 0
+            for i in range(len(message) - 1):
+                if (message[i] == "."):
+                    dotCount += 1
+            
+            # Remove excess characters
+            safe = 0
+            while (message.find("'") != -1):
+
+                if (safe >= 10):
+                    print("shit broke")
+                    break
+
+                ind = message.find("'")
+                if (ind == 0):
+                    message = message[1:]
+                elif (ind == len(message) - 1):
+                    message = message[:-1]
+                else:
+                    message = message[:ind] + message[ind + 1:]
+                
+                safe += 1
+
+            if (dotCount >= 4): # If message has values for all x, y and z
+                # Parse the x, y and z values from the message
+                xyzStrings = ["x", "y", "z"]
+
+                skip = True
+                for i in range(len(xyz)):
+                    dotIndex = message.find(".")
+
+                    # Make sure the message has all the values
+                    # If not, read another message
+                    if (skip):
+                        tmpMsg = message
+                        for n in range(2):
+                            di = tmpMsg.find(".")
+                            tmpMsg = tmpMsg[di + 3:]
+                        
+                        if (dotIndex > len(tmpMsg) - 3):
+                            break
+                        else:
+                            skip = False
+
+                    xyz[i] = float(message[:dotIndex + 3])
+                    message = message[dotIndex + 3:]
+                    print(xyzStrings[i] + ": " + str(xyz[i]))
+                SendOSCMessage(xyz)
+                print("")
+
+                #print(str(repr(data.outb))[1:], 'from', data.addr)
+                #print(message)
+            data.outb = bytes(0)
+        else:
+            print('closing connection to', data.addr)
+            sel.unregister(sock)
+            sock.close()
+    if mask & selectors.EVENT_WRITE & False:
+        if data.outb:
+            try:
+                sent = sock.send(data.outb)  # Should be ready to write
+            except Exception as e:
+                print(e)
+            data.outb = data.outb[sent:]
+
+while True:
+    events = sel.select(timeout=None)
+    for key, mask in events:
+        if key.data is None:
+            accept_wrapper(key.fileobj)
+        else:
+            service_connection(key, mask)
