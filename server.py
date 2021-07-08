@@ -9,10 +9,11 @@ from simplecoremidi import send_midi
 
 sel = selectors.DefaultSelector()
 # ...
-host = "192.168.8.107"
+host = "192.168.8.105"
 port = 9999
 message = ""
-xyz = [0, 0, 0]
+gyroXYZ = [0, 0, 0]
+accXYZ = [0, 0, 0]
 
 # midi stuff
 midiChannel = 1
@@ -30,7 +31,7 @@ sel.register(lsock, selectors.EVENT_READ, data=None)
 oscClient = SimpleUDPClient("127.0.0.1", 9998)
 lastY = 0
 
-def SendOSCMessage(xyz):
+def SendOSCMessage(gyroXYZ, accXYZ):
     global lastY
 
     """
@@ -39,18 +40,18 @@ def SendOSCMessage(xyz):
         thresh = 300.0
 
         print("test")
-        if (abs(float(xyz[1])) >= thresh and abs(lastY) < thresh):
+        if (abs(float(gyroXYZ[1])) >= thresh and abs(lastY) < thresh):
             print("------------------------------Sending OSC...")
             oscClient.send_message("/wek/inputs", 1)
         
-        lastY = float(xyz[1])
+        lastY = float(gyroXYZ[1])
     except Exception as e:
         print("Failed to send OSC.")
         print(e)
     """
 
     # Send accelerometer data to wekinator
-    oscClient.send_message("/wek/inputs", (xyz[0] + 0.0, xyz[1] + 0.0, xyz[2] + 0.0))
+    oscClient.send_message("/wek/inputs", (gyroXYZ[0] + 0.0, gyroXYZ[1] + 0.0, gyroXYZ[2] + 0.0))
 
 def accept_wrapper(sock):
     conn, addr = sock.accept()  # Should be ready to read
@@ -62,7 +63,8 @@ def accept_wrapper(sock):
 
 def service_connection(key, mask):
     global message
-    global xyz
+    global gyroXYZ
+    global accXYZ
 
     sock = key.fileobj
     data = key.data
@@ -77,56 +79,78 @@ def service_connection(key, mask):
             data.outb += recv_data
             message += str(repr(data.outb))[1:]
 
-            # Message processor
-            dotCount = 0
-            for i in range(len(message) - 1):
-                if (message[i] == "."):
-                    dotCount += 1
+            # |||||||||||||||||||||||||||||||||| --- OLD SHIT --- ||||||||||||||||||||||||||
+            # # Message processor
+            # dotCount = 0
+            # for i in range(len(message) - 1):
+            #     if (message[i] == "."):
+            #         dotCount += 1
             
-            # Remove excess characters
-            safe = 0
-            while (message.find("'") != -1):
+            # # Remove excess characters
+            # safe = 0
+            # while (message.find("'") != -1):
 
-                if (safe >= 10):
-                    print("shit broke")
-                    break
+            #     if (safe >= 10):
+            #         print("shit broke")
+            #         break
 
-                ind = message.find("'")
-                if (ind == 0):
-                    message = message[1:]
-                elif (ind == len(message) - 1):
-                    message = message[:-1]
-                else:
-                    message = message[:ind] + message[ind + 1:]
+            #     ind = message.find("'")
+            #     if (ind == 0):
+            #         message = message[1:]
+            #     elif (ind == len(message) - 1):
+            #         message = message[:-1]
+            #     else:
+            #         message = message[:ind] + message[ind + 1:]
                 
-                safe += 1
+            #     safe += 1
 
-            if (dotCount >= 4): # If message has values for all x, y and z
-                # Parse the x, y and z values from the message
-                xyzStrings = ["x", "y", "z"]
+            # if (dotCount >= 4): # If message has values for all x, y and z
+            #     # Parse the x, y and z values from the message
+            #     gyroXYZStrings = ["x", "y", "z"]
 
-                skip = True
-                for i in range(len(xyz)):
-                    dotIndex = message.find(".")
+            #     skip = True
+            #     for i in range(len(gyroXYZ)):
+            #         dotIndex = message.find(".")
 
-                    # Make sure the message has all the values
-                    # If not, read another message
-                    if (skip):
-                        tmpMsg = message
-                        for n in range(2):
-                            di = tmpMsg.find(".")
-                            tmpMsg = tmpMsg[di + 3:]
+            #         # Make sure the message has all the values
+            #         # If not, read another message
+            #         if (skip):
+            #             tmpMsg = message
+            #             for n in range(2):
+            #                 di = tmpMsg.find(".")
+            #                 tmpMsg = tmpMsg[di + 3:]
                         
-                        if (dotIndex > len(tmpMsg) - 3):
-                            break
-                        else:
-                            skip = False
+            #             if (dotIndex > len(tmpMsg) - 3):
+            #                 break
+            #             else:
+            #                 skip = False
 
-                    xyz[i] = float(message[:dotIndex + 3])
-                    message = message[dotIndex + 3:]
-                    print(xyzStrings[i] + ": " + str(xyz[i]))
-                SendOSCMessage(xyz)
-                print("")
+            #         gyroXYZ[i] = float(message[:dotIndex + 3])
+            #         message = message[dotIndex + 3:]
+            #         print(gyroXYZStrings[i] + ": " + str(gyroXYZ[i]))
+
+            # ||||||||||||||||||||||||||||||||||| --- NEW SHIT --- |||||||||||||||||||||||||||||||||
+
+            message = message.replace("'", "")
+
+            if ("g" in message and "a" in message):
+                message = message[message.find("g"):]
+                gyroXYZ[0] = float(message[message.find("g") + 1:message.find(",")])
+                message = message[message.find(",") + 1:]
+                gyroXYZ[1] = float(message[:message.find(",")])
+                message = message[message.find(",") + 1:]
+                gyroXYZ[2] = float(message[:message.find("a")])
+            
+            if ("a" in message and "e" in message):
+                message = message[message.find("a"):]
+                accXYZ[0] = float(message[message.find("a") + 1:message.find(",")])
+                message = message[message.find(",") + 1:]
+                accXYZ[1] = float(message[:message.find(",")])
+                message = message[message.find(",") + 1:]
+                accXYZ[2] = float(message[:message.find("e")])
+
+            print("G: " + str(gyroXYZ) + " | A: " + str(accXYZ))
+            #SendOSCMessage(gyroXYZ, accXYZ)
 
                 #print(str(repr(data.outb))[1:], 'from', data.addr)
                 #print(message)
