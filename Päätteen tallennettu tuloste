@@ -1,0 +1,10 @@
+Last login: Sun Jan  3 17:10:45 on console
+Eikka-MacBook-Pro:~ eikka$ ls
+Desktop		Downloads	Movies		Pictures
+Documents	Library		Music		Public
+Eikka-MacBook-Pro:~ eikka$ cd Documents
+Eikka-MacBook-Pro:Documents eikka$ ls
+Max 8			WekiTrainerMini.amxd
+PythonServer		WekiTrainer_V0.9_.amxd
+Eikka-MacBook-Pro:Documents eikka$ cd PythonServer
+Eikka-MacBook-Pro:PythonServer eikka$ python3 server.py

@@ -9,11 +9,11 @@ from simplecoremidi import send_midi
 
 sel = selectors.DefaultSelector()
 # ...
-host = "192.168.8.105"
+host = socket.gethostname()
 port = 9999
 message = ""
-gyroXYZ = [0, 0, 0]
-accXYZ = [0, 0, 0]
+gyroXYZ = [0.0, 0.0, 0.0]
+accXYZ = [0.0, 0.0, 0.0]
 
 # midi stuff
 midiChannel = 1
@@ -51,7 +51,7 @@ def SendOSCMessage(gyroXYZ, accXYZ):
     """
 
     # Send accelerometer data to wekinator
-    oscClient.send_message("/wek/inputs", (gyroXYZ[0] + 0.0, gyroXYZ[1] + 0.0, gyroXYZ[2] + 0.0))
+    oscClient.send_message("/wek/inputs", (gyroXYZ[0], gyroXYZ[1], gyroXYZ[2]))
 
 def accept_wrapper(sock):
     conn, addr = sock.accept()  # Should be ready to read
