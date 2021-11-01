@@ -3,15 +3,17 @@ import socket
 import types
 import time
 import os
-from pythonosc.udp_client import SimpleUDPClient
 import keyboard
+import tkinter as tk
+from pythonosc.udp_client import SimpleUDPClient
 from simplecoremidi import send_midi
 
 sel = selectors.DefaultSelector()
 # ...
-host = socket.gethostname()
+host = socket.gethostbyname(socket.gethostname())
 port = 9999
 message = ""
+startedListening = False
 gyroXYZ = [0.0, 0.0, 0.0]
 accXYZ = [0.0, 0.0, 0.0]
 
@@ -20,21 +22,65 @@ midiChannel = 1
 note_on_action = 0x90
 velocity = 127
 
-lsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-lsock.bind((host, port))
-lsock.listen()
-print('listening on', (host, port))
-lsock.setblocking(False)
-sel.register(lsock, selectors.EVENT_READ, data=None)
-
 # Set up an OSC Client to send data to Wekinator
 oscClient = SimpleUDPClient("127.0.0.1", 9998)
 lastY = 0
 
+# Forward declare text log widget
+textlog = None
+
+# GUI event callbacks
+def ButtonListen(event):
+    global startedListening
+    global host
+    global textlog
+
+    # socket stuff. TBF can't remember how this works. 
+    startedListening = True
+    lsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    lsock.bind((host, port))
+    lsock.listen()
+    lsock.setblocking(False)
+    sel.register(lsock, selectors.EVENT_READ, data=None)
+    print('listening on', (host, port))
+    textlog.insert(tk.END, "Listening on " + host + ":" + str(port))
+
+def ButtonStop(event):
+    global startedListening
+    global textlog
+
+    startedListening = False
+    textlog.delete("1.0", tk.END)
+    textlog.insert("1.0", "Stopped listening.")
+
+def IPEntryChanged(event):
+    global host
+    
+    host = event.widget.get()
+    print("Host changed to " + str(host))
+
+# GUI
+window = tk.Tk()
+title = tk.Label(text="AVCC")
+title.pack()
+# ipEntry = tk.Entry(width=15)
+# ipEntry.insert(0, host)
+# ipEntry.bind("<Return>", IPEntryChanged)
+# ipEntry.pack()
+buttonCon = tk.Button(text="Start Listening", width=12, height=2)
+buttonCon.bind("<Button-1>", ButtonListen) # When mouse1 is pressed on this widget, run callback
+buttonCon.pack()
+buttonStop = tk.Button(text="Stop Listening", width=12, height=2)
+buttonStop.bind("<Button-1>", ButtonStop)
+buttonStop.pack()
+textlog = tk.Text(width=50, height=1)
+textlog.pack()
+
+# OSC stuff
 def SendOSCMessage(gyroXYZ, accXYZ):
+    """
     global lastY
 
-    """
     try:
         # Check if the board was whacked like a drum stick
         thresh = 300.0
@@ -65,6 +111,7 @@ def service_connection(key, mask):
     global message
     global gyroXYZ
     global accXYZ
+    global textlog
 
     sock = key.fileobj
     data = key.data
@@ -149,7 +196,10 @@ def service_connection(key, mask):
                 message = message[message.find(",") + 1:]
                 accXYZ[2] = float(message[:message.find("e")])
 
-            print("G: " + str(gyroXYZ) + " | A: " + str(accXYZ))
+            outString = "G: " + str(gyroXYZ) + " | A: " + str(accXYZ)
+            print(outString)
+            textlog.delete("1.0", tk.END)
+            textlog.insert("1.0", outString)
             #SendOSCMessage(gyroXYZ, accXYZ)
 
                 #print(str(repr(data.outb))[1:], 'from', data.addr)
@@ -167,8 +217,15 @@ def service_connection(key, mask):
                 print(e)
             data.outb = data.outb[sent:]
 
+#window.mainloop()
+
 while True:
+    window.update() # Update GUI
+    if startedListening == False: continue
+
+    # TODO: Timeout here so the program doesn't get suck on "listening..."
     events = sel.select(timeout=None)
+
     for key, mask in events:
         if key.data is None:
             accept_wrapper(key.fileobj)
