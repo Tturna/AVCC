@@ -14,6 +14,7 @@ host = socket.gethostbyname(socket.gethostname())
 port = 9999
 message = ""
 startedListening = False
+listenTimeout = 15
 gyroXYZ = [0.0, 0.0, 0.0]
 accXYZ = [0.0, 0.0, 0.0]
 
@@ -53,20 +54,26 @@ def ButtonStop(event):
     textlog.delete("1.0", tk.END)
     textlog.insert("1.0", "Stopped listening.")
 
-def IPEntryChanged(event):
-    global host
-    
-    host = event.widget.get()
-    print("Host changed to " + str(host))
+def TimeoutEntryChanged(event):
+    global listenTimeout
+    listenTimeout = event.widget.get()
+    print("Listen timeout changed to " + str(listenTimeout))
 
 # GUI
 window = tk.Tk()
-title = tk.Label(text="AVCC")
+window.title("AVCC")
+title = tk.Label(text="Arduino Listener\n")
 title.pack()
 # ipEntry = tk.Entry(width=15)
 # ipEntry.insert(0, host)
 # ipEntry.bind("<Return>", IPEntryChanged)
 # ipEntry.pack()
+timeoutLabel = tk.Label(text="Listen Timeout")
+timeoutLabel.pack()
+timeoutEntry = tk.Entry(width=15)
+timeoutEntry.insert(0, str(listenTimeout))
+timeoutEntry.bind("<Return>", TimeoutEntryChanged)
+timeoutEntry.pack()
 buttonCon = tk.Button(text="Start Listening", width=12, height=2)
 buttonCon.bind("<Button-1>", ButtonListen) # When mouse1 is pressed on this widget, run callback
 buttonCon.pack()
@@ -223,9 +230,15 @@ while True:
     window.update() # Update GUI
     if startedListening == False: continue
 
-    # TODO: Timeout here so the program doesn't get suck on "listening..."
-    events = sel.select(timeout=None)
+    # Timeout here so the program doesn't get suck on "listening..."
+    events = sel.select(timeout=10)
 
+    # If no events were found (e.g. timeout), stop listening
+    if len(events) == 0:
+        startedListening = False
+        textlog.delete("1.0", tk.END)
+        textlog.insert("1.0", "Timed out")
+    
     for key, mask in events:
         if key.data is None:
             accept_wrapper(key.fileobj)
