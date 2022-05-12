@@ -1,20 +1,30 @@
 # This is a server to receive accelerometer and gyroscope data from the Nano 33 IoT.
 # This is designed to send MIDI signals using a library for Windows.
-# This is designed to receive data from the complementarydemo.ino Arduino client.
+# This is designed to receive data from the newclient.ino Arduino client.
 
 import selectors
 import socket
 import types
 import tkinter as tk
-# insert some midi library
+import rtmidi
+from rtmidi.midiconstants import CONTROL_CHANGE
 
 sel = selectors.DefaultSelector()
 # ...
-host = socket.gethostbyname(socket.gethostname())
+#host = socket.gethostbyname(socket.gethostname())
+host = "192.168.1.103"
 port = 9999
 message = ""
 startedListening = False
 listenTimeout = 15
+
+# MIDI shit
+midiout = rtmidi.MidiOut()
+availablePorts = midiout.get_ports()
+print(availablePorts)
+
+if availablePorts:
+    midiout.open_port(3)
 
 # Forward declare text log widget
 textlog = None
@@ -96,9 +106,21 @@ def service_connection(key, mask):
         if recv_data: # Message has been read
             data.outb += recv_data
             message += str(repr(data.outb))[1:]
-            message.replace("'", "")
+            message = message.replace("'", "")
 
-            print(message)
+            # get actual numbers from the received message
+            # the system likes to send data in random ass amounts at a time so we gotta check when we have full messages
+
+            while (len(message) >= 4 and len(message) - message.find(".") - 1 >= 2):
+                goodbit = message[:message.find(".") + 3]
+                message = message[len(goodbit):]
+                pitch = float(goodbit)
+                print(goodbit)
+
+                controlValue = pitch * 1.411111 if pitch > 0 else 0
+                cc = [CONTROL_CHANGE, 40, controlValue]
+                midiout.send_message(cc)
+
             data.outb = bytes(0)
         else:
             print('closing connection to', data.addr)
