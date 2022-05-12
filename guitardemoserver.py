@@ -1,3 +1,7 @@
+# This is a server to receive accelerometer and gyroscope data from the Nano 33 IoT.
+# This is designed to send MIDI signals using a library for Mac.
+# Pretty sure this is designed to receive messages sent by the madgwickdemo.ino Arduino client
+
 import selectors
 import socket
 import types

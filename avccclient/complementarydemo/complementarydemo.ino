@@ -1,5 +1,5 @@
 // Followed guide:
-//
+// https://www.pieter-jan.com/node/11#:~:text=The%20complementary%20filter%20gives%20us,as%20it%20does%20not%20drift.
 
 // This shit doesn't work
 
