@@ -26,9 +26,13 @@ void loop() {
     IMU.readAcceleration(xAcc, yAcc, zAcc);
     IMU.readGyroscope(xGyro, yGyro, zGyro); 
     filter.updateIMU(xGyro, yGyro, zGyro, xAcc, yAcc, zAcc);
+    roll = filter.getRoll();
     pitch = filter.getPitch();
+    heading = filter.getYaw();
     float pitchFiltered = 0.1 * pitch + 0.9 * pitchFilteredOld; // low pass filter
-    Serial.println("pitch: " + String(pitch));
     pitchFilteredOld = pitchFiltered;
+    Serial.print("roll: " + String(roll) + '\t');
+    Serial.print("pitch: " + String(pitchFiltered) + '\t');
+    Serial.println("heading: " + String(heading));
   }
 }

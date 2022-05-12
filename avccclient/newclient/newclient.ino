@@ -1,7 +1,7 @@
 #include <Arduino_LSM6DS3.h>
-#undef max
-#undef min
-#include <SPI.h>
+//#undef max
+//#undef min
+//#include <SPI.h>
 #include <WiFiNINA.h>
 #include <MadgwickAHRS.h>
 #include <Math.h>
@@ -18,9 +18,9 @@ const float sensorRate = 104.00;
 
 //char ssid[] = "mokkula_482925";
 //char pass[] = "HN7MEF63FJD";
-char ssid[] = "mokkula_482925";
-char pass[] = "HN7MEF63FJD";
-char hostName[] = "192.168.8.100";
+char ssid[] = "TP-Link_2946";
+char pass[] = "64795164";
+char hostName[] = "192.168.1.103";
 int port = 9999;
 int status = WL_IDLE_STATUS;     // the Wifi radio's status
 
@@ -34,9 +34,10 @@ void setup() {
 
   if (!IMU.begin()) {
     Serial.println("Failed to initialize IMU!");
-
     while (1);
   }
+
+  filter.begin(sensorRate);
 
   // check for the WiFi module:
   if (WiFi.status() == WL_NO_MODULE) {
@@ -60,14 +61,6 @@ void setup() {
   Serial.print("You're connected to the network");
   printCurrentNet();
   printWifiData();
-
-  Serial.print("\nGyro");
-  Serial.print("Gyroscope sample rate = ");
-  Serial.print(IMU.gyroscopeSampleRate());
-  Serial.println(" Hz");
-  Serial.println();
-  Serial.println("Gyroscope in degrees/second");
-  Serial.println("X\tY\tZ");
 
   while (!client.connected())
   {
@@ -107,7 +100,7 @@ void loop() {
     filter.updateIMU(xGyro, yGyro, zGyro, xAcc, yAcc, zAcc);
     pitch = filter.getPitch();
     float pitchFiltered = 0.1 * pitch + 0.9 * pitchFilteredOld; // low pass filter
-    Serial.println("pitch: " + String(pitchFiltered));
+    Serial.println("pitch: " + String(pitch));
     pitchFilteredOld = pitchFiltered;
 
     client.print(pitchFiltered);
@@ -127,7 +120,7 @@ void loop() {
     //client.print("e");
   }
 
-  //delay(100);  
+  //delay(15);  
 }
 
 void printWifiData() {
