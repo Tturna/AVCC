@@ -1,3 +1,6 @@
+# This server was made to receive OSC messages from Wekinator and
+# send MIDI messages according to received data.
+
 from pythonosc.osc_server import BlockingOSCUDPServer
 from pythonosc.dispatcher import Dispatcher
 from simplecoremidi import send_midi
