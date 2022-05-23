@@ -1,6 +1,7 @@
 # This is a server to receive accelerometer and gyroscope data from the Nano 33 IoT.
 # This is designed to send MIDI signals using a library for Mac.
-# Pretty sure this is designed to receive messages sent by the madgwickdemo.ino Arduino client
+# This is designed to receive data from the newclient.ino Arduino client,
+# though it's not tested.
 
 import selectors
 import socket
@@ -85,29 +86,6 @@ buttonStop.pack()
 textlog = tk.Text(width=50, height=1)
 textlog.pack()
 
-# OSC stuff
-def SendOSCMessage(gyroXYZ, accXYZ):
-    """
-    global lastY
-
-    try:
-        # Check if the board was whacked like a drum stick
-        thresh = 300.0
-
-        print("test")
-        if (abs(float(gyroXYZ[1])) >= thresh and abs(lastY) < thresh):
-            print("------------------------------Sending OSC...")
-            oscClient.send_message("/wek/inputs", 1)
-        
-        lastY = float(gyroXYZ[1])
-    except Exception as e:
-        print("Failed to send OSC.")
-        print(e)
-    """
-
-    # Send accelerometer data to wekinator
-    #oscClient.send_message("/wek/inputs", (gyroXYZ[0], gyroXYZ[1], gyroXYZ[2]))
-
 def accept_wrapper(sock):
     conn, addr = sock.accept()  # Should be ready to read
     print('accepted connection from', addr)
@@ -134,8 +112,21 @@ def service_connection(key, mask):
             message += str(repr(data.outb))[1:]
             message.replace("'", "")
 
+            # get actual numbers from the received message
+            # the system likes to send data in random ass amounts at a time so we gotta check when we have full messages
+
+            while (len(message) >= 4 and len(message) - message.find(".") - 1 >= 2):
+                goodbit = message[:message.find(".") + 3]
+                message = message[len(goodbit):]
+                pitch = float(goodbit)
+                print(goodbit)
+
+                controlValue = pitch * 1.411111 if pitch > 0 else 0
+                #cc = [CONTROL_CHANGE, 40, controlValue]
+                cc = (0xA0, 40, controlValue)
+                send_midi(cc)
+
             print(message)
-            #SendOSCMessage(gyroXYZ, accXYZ)
 
             #send_midi((0xB0 | 1, 40, gyroXYZ[2]))
 
