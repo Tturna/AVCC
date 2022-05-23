@@ -1,0 +1,32 @@
+Käyttöohjeet kitarademolle (ja osittain muillekin demoille)
+
+Huom. Tätä demoa ei ole testattu Macilla.
+
+1. Lataa romut täältä gitistä https://github.com/Tturna/AVCC
+2. Avaa terminaali-ikkuna
+    2.1. Cmd + Space
+    2.2. Hae "terminal" ja avaa
+
+3. Varmista, että simplecoremidi Python kirjasto on asennettu
+    3.1. Aja komento "pip3 install simplecoremidi"
+    3.2. Jos saat virheilmoituksen...
+        3.2.1. mallia "pip3 not recognized as a command", asenna Python 3 (https://www.python.org/downloads/) ja yritä uudelleen
+        3.2.2. mallia "installation failed..." tai vastaavaa punaista tekstiä, aja komento "sudo pip3 install simplecoremidi"
+
+4. Navigoi terminaalissa ladattun git kansioon
+    4.1. esim. jos ladatut romut on Downloads kansiossa vakionimellä, aja komento "cd ~/Downloads/AVCC-main"
+
+5. Käynnistä palvelin ajamalla "python3 guitardemoserver.py"
+6. Hae Arduinosovellus kansiosta "avccclient/newclient/" ja avaa Arduino IDE sovelluksella
+7. Asenna Madgwick Arduino kirjasto
+    7.1. Arduino IDE sovelluksessa navigoi ylhäältä "Tools > Manage Libraries"
+    7.2. Hae "Madgwick" ja asenna versio 1.2.0.
+
+8. Vaihda koodiin oman lähiverkon SSID ja salasana
+9. Siirrä koodi Arduinolle (Upload)
+10. Ohjelma ajetaan kun Serial Monitor on auki (Arduino IDE oikea ylänurkka)
+11. Paina palvelimen käyttöliittymästä "Start Listening"
+12. Jos Serial Monitor näyttää, että Arduino on yhdistetty, mutta palvelin sanoo "Timeout" ja/tai
+palvelimen terminaali-ikkuna ei tulvi numeroita, paina uudelleen "Start Listening"
+
+13. Hyvällä tuurilla homma pelittää ja Abletoniin menee nyt MIDI CC viestiä.

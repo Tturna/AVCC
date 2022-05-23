@@ -6,11 +6,7 @@
 import selectors
 import socket
 import types
-import time
-import os
-import keyboard
 import tkinter as tk
-from pythonosc.udp_client import SimpleUDPClient
 from simplecoremidi import send_midi
 
 sel = selectors.DefaultSelector()
