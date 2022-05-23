@@ -106,7 +106,7 @@ def service_connection(key, mask):
         if recv_data: # Message has been read
             data.outb += recv_data
             message += str(repr(data.outb))[1:]
-            message.replace("'", "")
+            message = message.replace("'", "")
 
             # get actual numbers from the received message
             # the system likes to send data in random ass amounts at a time so we gotta check when we have full messages
