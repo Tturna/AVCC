@@ -9,24 +9,29 @@
 
 float pitchFilteredOld;
 Madgwick filter;
-const float sensorRate = 104.00;
+const float sensorRate = 52.00;
+const float pitchSmooth = 0.3;
 
 //#include "arduino_secrets.h" 
 ///////please enter your sensitive data in the Secret tab/arduino_secrets.h
 //char ssid[] = SECRET_SSID;        // your network SSID (name)
 //char pass[] = SECRET_PASS;    // your network password (use for WPA, or use as key for WEP)
 
-//char ssid[] = "mokkula_482925";
-//char pass[] = "HN7MEF63FJD";
-char ssid[] = "uusikyla";
-char pass[] = "painuhiiteen";
-char hostName[] = "192.168.1.92";
+char ssid[] = "mokkula_482925";
+char pass[] = "HN7MEF63FJD";
+//char ssid[] = "uusikyla";
+//char pass[] = "painuhiiteen";
+char hostName[] = "192.168.8.112";
 int port = 9999;
 int status = WL_IDLE_STATUS;     // the Wifi radio's status
 
 WiFiClient client;
 
 bool gotReply = false;
+  
+float xAcc, yAcc, zAcc;
+float xGyro, yGyro, zGyro;
+float roll, pitch, yaw;
 
 void setup() {
   Serial.begin(9600);
@@ -90,34 +95,24 @@ void setup() {
 }
 
 void loop() {
-  
-  float xAcc, yAcc, zAcc;
-  float xGyro, yGyro, zGyro;
-  float roll, pitch, heading;
   if(IMU.accelerationAvailable() && IMU.gyroscopeAvailable()){
     IMU.readAcceleration(xAcc, yAcc, zAcc);
     IMU.readGyroscope(xGyro, yGyro, zGyro); 
     filter.updateIMU(xGyro, yGyro, zGyro, xAcc, yAcc, zAcc);
     pitch = filter.getPitch();
-    float pitchFiltered = 0.1 * pitch + 0.9 * pitchFilteredOld; // low pass filter
-    Serial.println("pitch: " + String(pitch));
+    roll = filter.getRoll();
+    yaw = filter.getYaw();
+    float pitchFiltered = pitchSmooth * pitch + (1 - pitchSmooth) * pitchFilteredOld; // low pass filter
     pitchFilteredOld = pitchFiltered;
 
-    client.print(pitchFiltered);
+    Serial.println(pitchFiltered);
 
-    //client.print("g");
-    //client.print(gx);
-    //client.print(",");
-    //client.print(gy);
-    //client.print(",");
-    //client.print(gz);
-    //client.print("a");
-    //client.print(ax);
-    //client.print(",");
-    //client.print(ay);
-    //client.print(",");
-    //client.print(az);
-    //client.print("e");
+    client.print('y');
+    client.print(pitchFiltered);
+    client.print('p');
+    client.print(roll);
+    client.print('r');
+    client.print(yaw);
   }
 
   //delay(15);  

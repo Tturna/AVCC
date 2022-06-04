@@ -1,13 +1,11 @@
 # This is a server to receive accelerometer and gyroscope data from the Nano 33 IoT.
-# This is designed to send MIDI signals using a library for Mac.
-# This is designed to receive data from the newclient.ino Arduino client,
-# though it's not tested.
+# This is designed to calculate the board's relative position in the world.
+# This is designed to receive data from the tracker.ino Arduino client
 
 import selectors
 import socket
 import types
 import tkinter as tk
-from simplecoremidi import send_midi
 
 sel = selectors.DefaultSelector()
 # ...
@@ -17,14 +15,11 @@ message = ""
 startedListening = False
 listenTimeout = 15
 
-# midi stuff
-midiChannel = 1
-note_on_action = 0x90
-velocity = 127
-
-# Set up an OSC Client to send data to Wekinator
-# oscClient = SimpleUDPClient("127.0.0.1", 9998)
-lastY = 0
+pry = {
+    "p": 0.0,
+    "r": 0.0,
+    "y": 0.0
+}
 
 # Forward declare text log widget
 textlog = None
@@ -111,24 +106,22 @@ def service_connection(key, mask):
             # get actual numbers from the received message
             # the system likes to send data in random ass amounts at a time so we gotta check when we have full messages
 
-            while (len(message) >= 4 and len(message) - message.find(".") - 1 >= 2):
-                goodbit = message[:message.find(".") + 3]
-                message = message[len(goodbit):]
-                pitch = float(goodbit)
-                print(goodbit)
+            value = ""
+            newmsg = message
+            for n in range(len(message)):
+                l = message[n]
+                if l in "pry":
+                    if len(value) > 2:
+                        pry[l] = float(value)
+                        value = ""
+                        newmsg = message[n:]
+                else:
+                    value += l
 
-                controlValue = pitch * 1.411111 if pitch > 0 else 0
-                #cc = [CONTROL_CHANGE, 40, controlValue]
-                cc = (0xB0, 40, controlValue)
-                send_midi(cc)
-
-            print(message)
-
-            #send_midi((0xB0 | 1, 40, gyroXYZ[2]))
-
-                #print(str(repr(data.outb))[1:], 'from', data.addr)
-                #print(message)
+            print(pry)
+            
             data.outb = bytes(0)
+            message = newmsg
         else:
             print('closing connection to', data.addr)
             sel.unregister(sock)
