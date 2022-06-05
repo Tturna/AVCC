@@ -31,15 +31,12 @@ oldpry = {
     "y": 0.0
 }
 
-# variable to store the time of the last message
-# used to calculate deltatime between messages
-# deltatime is used to smooth 3D animations
-lastMessageTime = time.time()
-
 # Forward declare text log widget
 textlog = None
 
 init_window(800, 800, "Nano 33 Visualizer")
+mesh = gen_mesh_cube(35, 1, 10)
+model = load_model_from_mesh(mesh)
 
 cam = Camera3D(Vector3(0,10,10), Vector3(0,0,0), Vector3(0,1,0), 75, CameraProjection.CAMERA_PERSPECTIVE)
 set_camera_mode(cam, CameraMode.CAMERA_FREE)
@@ -109,9 +106,6 @@ def accept_wrapper(sock):
 def service_connection(key, mask):
     global message
     global textlog
-    global lastMessageTime
-    global redbox
-    global arw
 
     sock = key.fileobj
     data = key.data
@@ -142,18 +136,15 @@ def service_connection(key, mask):
                 else:
                     value += l
 
-            print(pry)
-
-            mesh = gen_mesh_cube(35, 1, 10)
-            model = load_model_from_mesh(mesh)
+            #print(pry)
 
             # Calculate the transform matrix
             # Following this:
             # https://docs.arduino.cc/library-examples/curie-imu/Genuino101CurieIMUOrientationVisualiser
-            c1 = math.cos(math.radians(pry["r"]))
-            s1 = math.sin(math.radians(pry["r"]))
-            c2 = math.cos(math.radians(-pry["p"]))
-            s2 = math.sin(math.radians(-pry["p"]))
+            c1 = math.cos(math.radians(-pry["r"]))
+            s1 = math.sin(math.radians(-pry["r"]))
+            c2 = math.cos(math.radians(pry["p"]))
+            s2 = math.sin(math.radians(pry["p"]))
             c3 = math.cos(math.radians(-pry["y"]))
             s3 = math.sin(math.radians(-pry["y"]))
             bigboimatrix = Matrix(  c2*c3, s1*s3+c1*c3*s2, c3*s1*s2-c1*s3, 0,
@@ -167,8 +158,8 @@ def service_connection(key, mask):
             begin_mode_3d(cam)
 
             model.transform = bigboimatrix
-            draw_model(model, Vector3(0,0,0), 1, Color(255,0,0,200))
-            draw_cube_wires(Vector3(0,0,0), 35, 1, 10, Color(127,0,0,255))
+            draw_model(model, Vector3(0,0,0), 1, Color(255,0,0,255))
+            #draw_cube_wires(Vector3(0,0,0), 35, 1, 10, Color(127,0,0,255))
             #draw_cube(Vector3(0,0,0), 3, 3, 3, Color(0,127,255,255))
             draw_grid(50,1)
 
