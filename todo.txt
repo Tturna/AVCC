@@ -1,6 +1,7 @@
 To Do:
 
-- board position/rotation in simulated world space
-- 1 server solution
-- multiple Arduino support
-- better GUI
+- 1 server solution?
+- combine features
+    - toggleable visualizer
+    - Show connected boards (IPs?)
+    - Print board outputs
