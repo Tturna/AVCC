@@ -1,3 +1,6 @@
+// I pasted all the code from the unotest.ino file because this name makes more sense
+// It's not a test thing anymore
+
 int pins [12] = { 2,3,4,5,6,7,8,9,10,11,12,13};
 int message [2];
 int power = 0;

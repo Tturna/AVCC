@@ -16,7 +16,6 @@
 # This is designed to calculate the board's relative position in the world.
 # This is designed to receive data from the tracker.ino Arduino client
 
-from glob import glob
 import selectors
 import socket
 import types
@@ -35,6 +34,11 @@ listenTimeout = 20
 # Pitch, Roll, Yaw from the boards
 # this will be a nested dictionary
 boardinputs = {}
+
+# List of monitor switch buttons
+# this is used to turn all of them off except for the selected one,
+# because only one board input can be monitored at once
+monitorSwitches = []
 
 firstsocket = None # Used to store the first connected socket. This will be used for visualizing
 
@@ -88,6 +92,15 @@ def UpdateInputWidget(sock, pry):
         label.delete("1.0", tk.END)
         label.insert("1.0", str(pry["pry"[n]]))
 
+def SelectMonitorInput(checkButton):
+    global monitorSwitches
+    
+    for ms in monitorSwitches:
+        ms.deselect()
+
+    checkButton.select()
+        
+
 # Tkinter GUI
 window = tk.Tk()
 window.title("AVCC")
@@ -117,6 +130,9 @@ textlog.place(x=0, y=250)
 connectionsLabel = tk.Label(master=frame, text="Connected devices:")
 connectionsLabel.place(x=550, y=0)
 
+visualizeLabel = tk.Label(master=frame, text="Visualize")
+visualizeLabel.place(x=500, y=20)
+
 for n in range(3):
     pryLabel = tk.Label(master=frame, text=["Pitch", "Roll", "Heading"][n])
     pryLabel.place(x=700 + 75*n, y=20)
@@ -136,6 +152,7 @@ def service_connection(key, mask):
     global inputWidgets
     global messages
     global firstsocket
+    global monitorSwitches
 
     sock = key.fileobj
     data = key.data
@@ -150,6 +167,10 @@ def service_connection(key, mask):
         connCount = len(boardinputs.keys())
         connLabel = tk.Label(master=frame, text=f"{str(connCount)}: {str(sock.getpeername())}")
         connLabel.place(x=550, y=40*connCount)
+
+        monitorCheckButton = tk.Checkbutton(master=frame, command=lambda: SelectMonitorInput(monitorCheckButton))
+        monitorCheckButton.place(x=500, y=40*connCount)
+        monitorSwitches.append(monitorCheckButton)
 
         for n in range(3):
             pryText = tk.Text(master=frame, width=8, height=1)
@@ -194,7 +215,7 @@ def service_connection(key, mask):
             #print(pry)
             #print(sock.getpeername())
             _, peerport = sock.getpeername()
-            print(f"{peerport}: {pry}\n")
+            #print(f"{peerport}: {pry}\n")
 
             if (firstsocket == sock and False):
 
