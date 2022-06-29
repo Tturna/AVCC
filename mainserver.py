@@ -40,6 +40,10 @@ boardinputs = {}
 # because only one board input can be monitored at once
 monitorSwitches = []
 
+# the socket that will be used for board orientation visualization
+visualizedSock = None
+visualize = False
+
 firstsocket = None # Used to store the first connected socket. This will be used for visualizing
 
 # Forward declare updating widgets
@@ -92,38 +96,44 @@ def UpdateInputWidget(sock, pry):
         label.delete("1.0", tk.END)
         label.insert("1.0", str(pry["pry"[n]]))
 
-def SelectMonitorInput(checkButton):
+def SelectMonitorInput(checkButton, sock):
     global monitorSwitches
+    global visualizedSock
     
     for ms in monitorSwitches:
         ms.deselect()
 
     checkButton.select()
-        
+    visualizedSock = sock
+
+def SwitchVisualMonitor(state: bool):
+    global visualize
+    visualize = state
+    print(state)
 
 # Tkinter GUI
 window = tk.Tk()
 window.title("AVCC")
 frame = tk.Frame(master=window, width=960, height=270)
 frame.pack()
-title = tk.Label(master=frame, text="Arduino Listener\n")
-title.place(x=0,y=0)
+listenTitle = tk.Label(master=frame, text="Arduino Listener\n")
+listenTitle.place(x=5,y=0)
 # ipEntry = tk.Entry(width=15)
 # ipEntry.insert(0, host)
 # ipEntry.bind("<Return>", IPEntryChanged)
 # ipEntry.pack()
 timeoutLabel = tk.Label(master=frame, text="Listen Timeout")
-timeoutLabel.place(x=0, y=40)
+timeoutLabel.place(x=5, y=30)
 timeoutEntry = tk.Entry(master=frame, width=10)
 timeoutEntry.insert(0, str(listenTimeout))
 timeoutEntry.bind("<Return>", TimeoutEntryChanged) # Change to separate button?
-timeoutEntry.place(x=0, y=60)
+timeoutEntry.place(x=5, y=50)
 buttonCon = tk.Button(master=frame, text="Start Listening", width=12, height=2)
 buttonCon.bind("<Button-1>", ButtonListen) # When mouse1 is pressed on this widget, run callback
-buttonCon.place(x=0, y=100)
+buttonCon.place(x=5, y=70)
 buttonStop = tk.Button(master=frame, text="Stop Listening", width=12, height=2)
 buttonStop.bind("<Button-1>", ButtonStop)
-buttonStop.place(x=100, y=100)
+buttonStop.place(x=105, y=70)
 textlog = tk.Text(master=frame, width=50, height=1)
 textlog.place(x=0, y=250)
 
@@ -136,6 +146,15 @@ visualizeLabel.place(x=500, y=20)
 for n in range(3):
     pryLabel = tk.Label(master=frame, text=["Pitch", "Roll", "Heading"][n])
     pryLabel.place(x=700 + 75*n, y=20)
+
+visualizeTitle = tk.Label(master=frame, text="Visual Orientation Monitor")
+visualizeTitle.place(x=5, y=130)
+
+startVisButton = tk.Button(master=frame, text="Start Monitor", width=12, height=2, command=lambda: SwitchVisualMonitor(True))
+stopVisButton = tk.Button(master=frame, text="Stop Monitor", width=12, height=2, command=lambda: SwitchVisualMonitor(False))
+
+startVisButton.place(x=5, y=150)
+stopVisButton.place(x=105, y=150)
 
 def accept_wrapper(sock):
 
@@ -168,7 +187,7 @@ def service_connection(key, mask):
         connLabel = tk.Label(master=frame, text=f"{str(connCount)}: {str(sock.getpeername())}")
         connLabel.place(x=550, y=40*connCount)
 
-        monitorCheckButton = tk.Checkbutton(master=frame, command=lambda: SelectMonitorInput(monitorCheckButton))
+        monitorCheckButton = tk.Checkbutton(master=frame, command=lambda: SelectMonitorInput(monitorCheckButton, sock))
         monitorCheckButton.place(x=500, y=40*connCount)
         monitorSwitches.append(monitorCheckButton)
 
@@ -214,41 +233,40 @@ def service_connection(key, mask):
 
             #print(pry)
             #print(sock.getpeername())
-            _, peerport = sock.getpeername()
+            #_, peerport = sock.getpeername()
             #print(f"{peerport}: {pry}\n")
 
-            if (firstsocket == sock and False):
+            if (visualize and sock == visualizedSock):
 
-                # Calculate the transform matrix
-                # Following this:
-                # https://docs.arduino.cc/library-examples/curie-imu/Genuino101CurieIMUOrientationVisualiser
-                radr = math.radians(pry["r"])
-                radp = math.radians(pry["p"])
-                rady = math.radians(pry["y"])
-                c1 = math.cos(-radr)
-                s1 = math.sin(-radr)
-                c2 = math.cos(radp)
-                s2 = math.sin(radp)
-                c3 = math.cos(-rady)
-                s3 = math.sin(-rady)
-                bigboimatrix = Matrix(  c2*c3, s1*s3+c1*c3*s2, c3*s1*s2-c1*s3, 0,
-                                        -s2, c1*c2, c2*s1, 0,
-                                        c2*s3, c1*s2*s3-c3*s1, c1*c3+s1*s2*s3, 0,
-                                        0,0,0,1)
+                # # Calculate the transform matrix
+                # # Following this:
+                # # https://docs.arduino.cc/library-examples/curie-imu/Genuino101CurieIMUOrientationVisualiser
+                # radr = math.radians(pry["r"])
+                # radp = math.radians(pry["p"])
+                # rady = math.radians(pry["y"])
+                # c1 = math.cos(-radr)
+                # s1 = math.sin(-radr)
+                # c2 = math.cos(radp)
+                # s2 = math.sin(radp)
+                # c3 = math.cos(-rady)
+                # s3 = math.sin(-rady)
+                # bigboimatrix = Matrix(  c2*c3,  s1*s3+c1*c3*s2, c3*s1*s2-c1*s3, 0,
+                #                         -s2,    c1*c2, c2*s1,   0,
+                #                         c2*s3,  c1*s2*s3-c3*s1, c1*c3+s1*s2*s3, 0,
+                #                         0,      0,              0,              1)
 
-                update_camera(cam)
-                begin_drawing()
-                clear_background(Color(0,0,0,255))
-                begin_mode_3d(cam)
+                # update_camera(cam)
+                # begin_drawing()
+                # clear_background(Color(0,0,0,255))
+                # begin_mode_3d(cam)
 
-                model.transform = bigboimatrix
-                draw_model(model, Vector3(0,0,0), 1, Color(255,0,0,255))
-                #draw_cube_wires(Vector3(0,0,0), 35, 1, 10, Color(127,0,0,255))
-                #draw_cube(Vector3(0,0,0), 3, 3, 3, Color(0,127,255,255))
-                draw_grid(50,1)
+                # model.transform = bigboimatrix
+                # draw_model(model, Vector3(0,0,0), 1, Color(255,0,0,255))
+                # draw_grid(50,1)
 
-                end_mode_3d()
-                end_drawing()
+                # end_mode_3d()
+                # end_drawing()
+                pass
 
             data.outb = bytes(0)
             boardinputs[sock] = pry

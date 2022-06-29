@@ -1,6 +1,7 @@
 To Do:
 
 - 1 server solution?
+- separate script into multiple
 - combine features
     - toggleable visualizer
     - Show connected boards (IPs?)
