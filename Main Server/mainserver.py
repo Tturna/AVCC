@@ -13,19 +13,19 @@
 # - Sending and receiving OSC messages to and from Wekinator (or other software) (?)
 
 # This is a server to receive accelerometer and gyroscope data from the Nano 33 IoT.
-# This is designed to calculate the board's relative position in the world.
+# (not really) This is designed to calculate the board's relative position in the world.
 # This is designed to receive data from the tracker.ino Arduino client
 
 import selectors
 import socket
 import types
-import tkinter as tk
-import math
 from pyray import *
+import tkgui
 
 sel = selectors.DefaultSelector()
 # ...
 host = socket.gethostbyname(socket.gethostname())
+print(host)
 port = 9999
 messages = {}
 startedListening = False
@@ -35,20 +35,11 @@ listenTimeout = 20
 # this will be a nested dictionary
 boardinputs = {}
 
-# List of monitor switch buttons
-# this is used to turn all of them off except for the selected one,
-# because only one board input can be monitored at once
-monitorSwitches = []
-
 # the socket that will be used for board orientation visualization
 visualizedSock = None
 visualize = False
 
 firstsocket = None # Used to store the first connected socket. This will be used for visualizing
-
-# Forward declare updating widgets
-textlog = None
-inputWidgets = {} # dict to store the pitch, roll and yaw values for each connected board
 
 # Raylib shit
 # init_window(800, 800, "Nano 33 Orientation Visualizer")
@@ -63,7 +54,6 @@ inputWidgets = {} # dict to store the pitch, roll and yaw values for each connec
 def ButtonListen(event):
     global startedListening
     global host
-    global textlog
 
     # socket stuff. TBF can't remember how this works. 
     startedListening = True
@@ -73,15 +63,22 @@ def ButtonListen(event):
     lsock.setblocking(False)
     sel.register(lsock, selectors.EVENT_READ, data=None)
     print('listening on', (host, port))
-    textlog.insert(tk.END, "Listening on " + host + ":" + str(port))
+    tkgui.LogInsert(-1, "Listening on " + host + ":" + str(port))
 
 def ButtonStop(event):
     global startedListening
-    global textlog
+    global boardinputs
+    global messages
 
     startedListening = False
-    textlog.delete("1.0", tk.END)
-    textlog.insert("1.0", "Stopped listening.")
+
+    # kick out all connections
+    boardinputs.clear()
+    messages = {}
+    tkgui.ClearGraphics()
+
+    tkgui.LogDelete("1.0", -1)
+    tkgui.LogInsert("1.0", "Stopped listening.")
 
 def TimeoutEntryChanged(event):
     global listenTimeout
@@ -89,19 +86,14 @@ def TimeoutEntryChanged(event):
     print("Listen timeout changed to " + str(listenTimeout))
 
 def UpdateInputWidget(sock, pry):
-    global inputWidgets
-
     for n in range(3):
-        label = inputWidgets[sock][n]
-        label.delete("1.0", tk.END)
-        label.insert("1.0", str(pry["pry"[n]]))
+        tkgui.LabelDeleteAtIndex(sock, n, "1.0", -1)
+        tkgui.LabelInsertAtIndex(sock, n, "1.0", str(pry["pry"[n]]))
 
 def SelectMonitorInput(checkButton, sock):
-    global monitorSwitches
     global visualizedSock
-    
-    for ms in monitorSwitches:
-        ms.deselect()
+
+    tkgui.DeselectMonitorSwitches()
 
     checkButton.select()
     visualizedSock = sock
@@ -111,53 +103,7 @@ def SwitchVisualMonitor(state: bool):
     visualize = state
     print(state)
 
-# Tkinter GUI
-window = tk.Tk()
-window.title("AVCC")
-frame = tk.Frame(master=window, width=960, height=270)
-frame.pack()
-listenTitle = tk.Label(master=frame, text="Arduino Listener\n")
-listenTitle.place(x=5,y=0)
-# ipEntry = tk.Entry(width=15)
-# ipEntry.insert(0, host)
-# ipEntry.bind("<Return>", IPEntryChanged)
-# ipEntry.pack()
-timeoutLabel = tk.Label(master=frame, text="Listen Timeout")
-timeoutLabel.place(x=5, y=30)
-timeoutEntry = tk.Entry(master=frame, width=10)
-timeoutEntry.insert(0, str(listenTimeout))
-timeoutEntry.bind("<Return>", TimeoutEntryChanged) # Change to separate button?
-timeoutEntry.place(x=5, y=50)
-buttonCon = tk.Button(master=frame, text="Start Listening", width=12, height=2)
-buttonCon.bind("<Button-1>", ButtonListen) # When mouse1 is pressed on this widget, run callback
-buttonCon.place(x=5, y=70)
-buttonStop = tk.Button(master=frame, text="Stop Listening", width=12, height=2)
-buttonStop.bind("<Button-1>", ButtonStop)
-buttonStop.place(x=105, y=70)
-textlog = tk.Text(master=frame, width=50, height=1)
-textlog.place(x=0, y=250)
-
-connectionsLabel = tk.Label(master=frame, text="Connected devices:")
-connectionsLabel.place(x=550, y=0)
-
-visualizeLabel = tk.Label(master=frame, text="Visualize")
-visualizeLabel.place(x=500, y=20)
-
-for n in range(3):
-    pryLabel = tk.Label(master=frame, text=["Pitch", "Roll", "Heading"][n])
-    pryLabel.place(x=700 + 75*n, y=20)
-
-visualizeTitle = tk.Label(master=frame, text="Visual Orientation Monitor")
-visualizeTitle.place(x=5, y=130)
-
-startVisButton = tk.Button(master=frame, text="Start Monitor", width=12, height=2, command=lambda: SwitchVisualMonitor(True))
-stopVisButton = tk.Button(master=frame, text="Stop Monitor", width=12, height=2, command=lambda: SwitchVisualMonitor(False))
-
-startVisButton.place(x=5, y=150)
-stopVisButton.place(x=105, y=150)
-
 def accept_wrapper(sock):
-
     conn, addr = sock.accept()  # Should be ready to read
     print('accepted connection from', addr)
     conn.setblocking(False)
@@ -166,36 +112,31 @@ def accept_wrapper(sock):
     sel.register(conn, events, data=data)
 
 def service_connection(key, mask):
-    global textlog
     global boardinputs
-    global inputWidgets
     global messages
     global firstsocket
-    global monitorSwitches
 
     sock = key.fileobj
     data = key.data
 
     if (sock not in boardinputs.keys()):
         boardinputs[sock] = {"p": 0.0, "r": 0.0, "y": 0.0}
-        inputWidgets[sock] = []
+        tkgui.inputWidgets[sock] = []
         messages[sock] = ""
         print(f"Added {sock} to boardinputs.")
         if (firstsocket == None): firstsocket = sock
 
         connCount = len(boardinputs.keys())
-        connLabel = tk.Label(master=frame, text=f"{str(connCount)}: {str(sock.getpeername())}")
-        connLabel.place(x=550, y=40*connCount)
+        
+        tkgui.PlaceLabel(
+            f"{str(connCount)}: {str(sock.getpeername())}",
+            350,
+            40*connCount
+        )
 
-        monitorCheckButton = tk.Checkbutton(master=frame, command=lambda: SelectMonitorInput(monitorCheckButton, sock))
-        monitorCheckButton.place(x=500, y=40*connCount)
-        monitorSwitches.append(monitorCheckButton)
-
-        for n in range(3):
-            pryText = tk.Text(master=frame, width=8, height=1)
-            pryText.insert("1.0", str(boardinputs[sock]["pry"[n]]))
-            inputWidgets[sock].append(pryText)
-            pryText.place(x=700 + 75*n, y=40*connCount)
+        tkgui.AddMonitorSwitch(sock, SelectMonitorInput, 300, 40*connCount)
+        tkgui.AppendPryTexts(sock, boardinputs[sock], 500, 40*connCount)
+        tkgui.AddSettingsButton(725, 40*connCount)
 
     pry = boardinputs[sock]
     message = messages[sock]
@@ -283,10 +224,13 @@ def service_connection(key, mask):
                 print(e)
             data.outb = data.outb[sent:]
 
-#window.mainloop()
+# Tkinter GUI
+tkgui.Setup(listenTimeout, TimeoutEntryChanged, ButtonListen, ButtonStop, SwitchVisualMonitor)
+
+# Main Loop @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 while True:
-    window.update() # Update Tkinter GUI
+    tkgui.Update() # Update Tkinter GUI
     if startedListening == False: continue
 
     # Timeout here so the program doesn't get suck on "listening..."
@@ -296,8 +240,8 @@ while True:
     # If no events were found (e.g. timeout), stop listening
     if len(events) == 0:
         startedListening = False
-        textlog.delete("1.0", tk.END)
-        textlog.insert("1.0", "Timed out")
+        tkgui.LogDelete("1.0", -1)
+        tkgui.LogInsert("1.0", "Timed out")
     
     for key, mask in events:
         if key.data is None:

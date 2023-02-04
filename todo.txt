@@ -1,8 +1,22 @@
 To Do:
 
-- 1 server solution?
-- separate script into multiple
-- combine features
-    - toggleable visualizer
-    - Show connected boards (IPs?)
-    - Print board outputs
+- Board inputs to different outputs
+    - to MIDI
+    - to OSC
+    - OSC to Wekinator
+        - from Wekinator back to Server and then to MIDI
+
+    - different output methods
+        - straight through (board input goes directly to output)
+        - remapped (output goes from 0 to 1 or -1 to 1 etc.)
+        - threshold trigger (send 1 message if an input value reaches a threshold)
+        - threshold pass (send all inputs as outputs if they're within a given value range)
+
+- Threading for the listen loop?
+
+
+Ideas:
+
+Osculator
+TouchOSC on mobile
+^ combo?
