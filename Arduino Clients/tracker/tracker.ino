@@ -17,13 +17,13 @@ const float pitchSmooth = 0.3;
 //char ssid[] = SECRET_SSID;        // your network SSID (name)
 //char pass[] = SECRET_PASS;    // your network password (use for WPA, or use as key for WEP)
 
-//char ssid[] = "mokkula_482925";
-//char pass[] = "HN7MEF63FJD";
-char ssid[] = "crumbs";
-char pass[] = "64795164";
+char ssid[] = "mokkula_482925";
+char pass[] = "HN7MEF63FJD";
+//char ssid[] = "crumbs";
+//char pass[] = "64795164";
 //char ssid[] = "uusikyla";
 //char pass[] = "painuhiiteen";
-char hostName[] = "192.168.1.103";
+char hostName[] = "192.168.8.100";
 int port = 9999;
 int status = WL_IDLE_STATUS;     // the Wifi radio's status
 

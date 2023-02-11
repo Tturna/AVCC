@@ -7,7 +7,7 @@ from typing import Tuple
 
 class Server:
     def __init__(self, host: str = socket.gethostbyname(socket.gethostname()), port: int = 9999,
-                 listen_timeout: int = 60) -> None:
+                 listen_timeout: float = 60.0) -> None:
 
         # Pitch, Roll, Yaw from the boards
         # this will be a nested dictionary
@@ -24,7 +24,7 @@ class Server:
         self.__started_listening = False
 
         # initialize OSC Client
-        self.__osc_client = SimpleUDPClient("192.168.1.101", 8000)
+        self.__osc_client = SimpleUDPClient("192.168.8.101", 7000)
 
     def select_monitor_input(self, check_button, sock):
         tkgui.deselect_monitor_switches()
@@ -88,7 +88,8 @@ class Server:
         # Update value on GUI
         tkgui.update_input_widget(sock, pry)
 
-        self.send_osc_message(address=f'/arduino/{str(sock.getsockname()[0])}', values=pry.values())
+        #self.send_osc_message(address=f'/arduino/{str(sock.getsockname()[0])}', values=pry.values())
+        self.send_osc_message(address='/wek/inputs', values=pry.values())
 
         data.outb = bytes(0)
         self.__board_inputs[sock] = pry
@@ -132,10 +133,10 @@ class Server:
     def get_listening(self) -> bool:
         return self.__started_listening
 
-    def set_listen_timeout(self, seconds: int):
+    def set_listen_timeout(self, seconds: float):
         self.__listen_timeout = seconds
 
-    def get_listen_timeout(self) -> int:
+    def get_listen_timeout(self) -> float:
         return self.__listen_timeout
 
     def set_visualized_sock(self, sock):

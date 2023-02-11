@@ -4,7 +4,7 @@
 
 # Wanted Features:
 # - Sending and receiving OSC messages to and from Wekinator
-# - Sending OSC data to Oscullator, which communicates with Ableton
+# - Sending OSC data to Osculator, which communicates with Ableton
 
 # This is a server to receive accelerometer and gyroscope data from the Nano 33 IoT.
 # (not really) This is designed to calculate the board's relative position in the world.
@@ -17,12 +17,11 @@ import tkgui
 import server as avcc_server
 
 sel = selectors.DefaultSelector()
-server = avcc_server.Server("192.168.1.103")
+server = avcc_server.Server("192.168.8.100")
 
 
 # GUI event callbacks ----------------------------------
 def button_listen(_):
-    server.set_listening(True)
     host, port = server.get_host_and_port()
 
     # Create socket
@@ -38,6 +37,7 @@ def button_listen(_):
 
     print('listening on', (host, port))
     tkgui.log_insert(-1, "Listening on " + host + ":" + str(port))
+    server.set_listening(True)
 
 
 def button_stop(_):
@@ -73,7 +73,8 @@ while True:
     # Start monitoring registered objects (should just be our socket)
     # Timeout here so the program doesn't get suck on "listening..."
     # TODO: threading here?
-    events = sel.select(timeout=server.get_listen_timeout())
+    timeout = server.get_listen_timeout()
+    events = sel.select(timeout)
 
     # If no events were found (e.g. timeout), stop listening
     if len(events) == 0:
