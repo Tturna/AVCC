@@ -11,7 +11,7 @@ kansiosta Arduino Clients
 
 HUOM: Koodissa muuttujan "host" arvo on IP-osoite, jonka täytyy olla sama kuin
 käytettävän Mac-koneen IP-osoite. IP:n löytää oikeasta yläkulmasta
-verkkolaitteista -> "Network preferences" napista.
+verkkolaitteista -> Wifi -> "Network preferences" napista.
 ---------------------------------------------------------------------
 
 
@@ -37,6 +37,7 @@ ajaksi ja suorittamalla ele kääntämällä Arduinoa. Eleitä voi opettaa useaa
 Eleiden opetettua kun painaa Run, Wekinator alkaa arvaamaan mitä elettä Arduinon
 liikkeet muistuttaa. Säädä threshold palkkia kunnes vihreä pallo vilahtaa elettä
 tehtäessä. Tarkemmat ohjeet Wekinatorin sivuilta:
+
 http://www.wekinator.org/detailed-instructions/#Dynamic_time_warping_in_Wekinator
 
 Kun Wekinator huomaa eleen, se lähettää OSC viestin. Wekinator myös lähettää jatkuvasti

@@ -18,16 +18,16 @@ unsigned long microsPerReading, microsPrevious;
 //char ssid[] = SECRET_SSID;        // your network SSID (name)
 //char pass[] = SECRET_PASS;    // your network password (use for WPA, or use as key for WEP)
 
-char* ssid = "mokkula_482925";
-char* pass = "HN7MEF63FJD";
+//char* ssid = "mokkula_482925";
+//char* pass = "HN7MEF63FJD";
 //char ssid[] = "crumbs";
 //char pass[] = "64795164";
-//char ssid[] = "uusikyla";
-//char pass[] = "painuhiiteen";
-char* host = "192.168.8.101";
+char* ssid = "uusikyla";
+char* pass = "painuhiiteen";
+char* host = "192.168.1.104";
 int port = 8000;
-const IPAddress ip(192, 168, 8, 150);
-const IPAddress gateway(192, 168, 8, 1);
+const IPAddress ip(192, 168, 1, 110);
+const IPAddress gateway(192, 168, 1, 1);
 const IPAddress subnet(255, 255, 255, 0);
 
 //WiFiClient client;
@@ -42,6 +42,9 @@ float pitchFilteredOld;
 void setup() {
   Serial.begin(9600);
   while (!Serial);
+
+  Serial.println(ssid);
+  Serial.println(pass);
 
   if (!IMU.begin()) {
     Serial.println("Failed to initialize IMU!");
