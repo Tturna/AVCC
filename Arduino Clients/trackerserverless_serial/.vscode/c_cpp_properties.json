@@ -1,0 +1,21 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "C:\\Users\\eemel\\Documents\\Arduino\\libraries\\**",
+                "C:\\Users\\eemel\\AppData\\Local\\Arduino15\\packages\\arduino\\**",
+                "C:\\Program Files (x86)\\Arduino\\**"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE"
+            ],
+            "compilerPath": "C:/msys64/mingw64/bin/g++.exe",
+            "compilerArgs": []
+        }
+    ],
+    "version": 4
+}

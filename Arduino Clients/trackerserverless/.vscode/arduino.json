@@ -1,0 +1,5 @@
+{
+    "board": "arduino:samd:nano_33_iot",
+    "port": "COM4",
+    "sketch": "trackerserverless.ino"
+}

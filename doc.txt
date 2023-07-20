@@ -3,3 +3,7 @@ AVCC Tech Documentation
 As of 2023.3.1, the Arduino client “tracker-osc-standalone” is the best.
 It doesn’t use the custom python server at all. It directly sends OSC data
 via wifi which can be processed by Wekinator and Osculator.
+
+As of 2023.7.20, the client "trackerserverless" is the best and the one
+that's being updated. Does the same thing as the osc standalone one,
+but also has accelerometer data.
