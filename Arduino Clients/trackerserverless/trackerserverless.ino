@@ -48,7 +48,7 @@ void setup() {
 
   delay(2000);
 
-  OscWiFi.publish(host, port, "/publish/value", pitchFilteredOld, roll, yaw)
+  OscWiFi.publish(host, port, "/ard/0", pitchFilteredOld, roll, yaw, xAcc, yAcc, zAcc)
         ->setFrameRate(sensorRate);
 }
 
