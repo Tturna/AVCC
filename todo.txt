@@ -1,6 +1,0 @@
-To Do:
-
-- Threshold Trigger output mode option for board inputs??
-    - You can't really do that in Oscullator
-    - You can use Wekinator in between to do stuff like air drums though
-- Accelerometer input
