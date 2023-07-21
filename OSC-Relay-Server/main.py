@@ -35,7 +35,6 @@ def manual_unit_handler(address, *args):
     if (prev_args is not None):
         p, r, y, x, y, z = args
         o_p, o_r, o_y, o_x, o_y, o_z = prev_args
-        # print(f"prev r: {o_r}, new r: {r}")
 
         if (p < 0 and o_p > 0):
             print("Pitch to negative")
@@ -43,6 +42,12 @@ def manual_unit_handler(address, *args):
         elif (p > 0 and o_p < 0):
             print("Pitch to positive")
             osc_osculator_client.send_message("/p2pos" + address, p)
+        elif (p < -80 and o_p > -80):
+            print("Pitch down")
+            osc_osculator_client.send_message("/p2down" + address, p)
+        elif (p > 80 and o_p < 80):
+            print("Pitch up")
+            osc_osculator_client.send_message("/p2up" + address, p)
 
         if (r < 0 and o_r > 0):
             print("Roll to negative")
@@ -50,6 +55,12 @@ def manual_unit_handler(address, *args):
         elif (r > 0 and o_r < 0):
             print("Roll to positive")
             osc_osculator_client.send_message("/r2pos" + address, r)
+        elif (r < -135 and o_r > -135):
+            print("Roll left")
+            osc_osculator_client.send_message("/r2left" + address, r)
+        elif (r > 135 and o_r < 135):
+            print("Roll right")
+            osc_osculator_client.send_message("/r2right" + address, r)
     
     osc_wekinator_client.send_message(wekinator_address, args)
     osc_osculator_client.send_message("/raw" + address, args)
