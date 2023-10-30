@@ -18,6 +18,7 @@ unsigned long microsPerReading, microsPrevious;
 //char ssid[] = SECRET_SSID;        // your network SSID (name)
 //char pass[] = SECRET_PASS;    // your network password (use for WPA, or use as key for WEP)
 
+<<<<<<< HEAD
 //char* ssid = "mokkula_482925";
 //char* pass = "HN7MEF63FJD";
 //char ssid[] = "crumbs";
@@ -30,6 +31,18 @@ char* host = "192.168.1.92";
 int port = 8001;
 const IPAddress ip(192, 168, 1, 152);
 const IPAddress gateway(192, 168, 1, 1);
+=======
+char* ssid = "mokkula_482925";
+char* pass = "HN7MEF63FJD";
+//char ssid[] = "crumbs";
+//char pass[] = "64795164";
+// char* ssid = "uusikyla";
+// char* pass = "painuhiiteen";
+char* host = "192.168.8.102";
+int port = 8000;
+const IPAddress ip(192, 168, 8, 150);
+const IPAddress gateway(192, 168, 8, 1);
+>>>>>>> b4f9dfb512b2eb88a1860999a4f625ffa509acca
 const IPAddress subnet(255, 255, 255, 0);
 
 //WiFiClient client;
@@ -45,6 +58,12 @@ void setup() {
   Serial.begin(9600);
   while (!Serial);
 
+<<<<<<< HEAD
+=======
+  Serial.println(ssid);
+  Serial.println(pass);
+
+>>>>>>> b4f9dfb512b2eb88a1860999a4f625ffa509acca
   if (!IMU.begin()) {
     Serial.println("Failed to initialize IMU!");
     while (1);
@@ -72,7 +91,11 @@ void setup() {
   printWifiData();
   delay(2000);
 
+<<<<<<< HEAD
   OscWiFi.publish(host, port, "/ard/2", pitchFilteredOld, roll, yaw, xAcc, yAcc, zAcc)
+=======
+  OscWiFi.publish(host, port, "/publish/value", pitchFilteredOld, roll, yaw)
+>>>>>>> b4f9dfb512b2eb88a1860999a4f625ffa509acca
         ->setFrameRate(sensorRate);
 }
 

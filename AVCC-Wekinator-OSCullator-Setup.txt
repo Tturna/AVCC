@@ -1,0 +1,85 @@
+---------------------------------------------------------------------
+AVCC Arduino-Wekinator-OSCulator-DAW Järjestelmän käyttöönotto
+---------------------------------------------------------------------
+
+[ Arduino setup ]
+
+Flashaa Arduinolle koodi tiedostosta "tracker-osc-standalone.ino"
+(sama joka air dropattiin). Tiedosto löytyy myös GitHubista:
+https://github.com/Tturna/AVCC
+kansiosta Arduino Clients
+
+HUOM: Koodissa muuttujan "host" arvo on IP-osoite, jonka täytyy olla sama kuin
+käytettävän Mac-koneen IP-osoite. IP:n löytää oikeasta yläkulmasta
+verkkolaitteista -> Wifi -> "Network preferences" napista.
+---------------------------------------------------------------------
+
+
+[ Wekinator setup ]
+
+Wekinator ei ole pakollinen, jos ei halua eleisiin perustuvia toimintoja.
+Tässä tapauksessa OSCulatorin input portiksi tulee 8000.
+
+Jos Wekinator tulee käyttöön:
+
+Input portiksi 8000.
+Input message tulee olla "/publish/value" ja input määrä 3.
+
+Output type tulee olla "All dynamic time warping". Output portin voi valita
+itse, kunhan se ei ole 8000. Esimerkeissä käytetään 8001.
+Eri eleiden määrän voi päättä nyt. Vakio on 5.
+
+Kun Wekinator ja Arduino on päällä, Wekinatorissa pitäisi näkyä vihreä "OSC In" pallo.
+Pallo on keltainen jos dataa ei pääse sisään.
+
+Wekinatorille opetetaan eleitä painamalla jonkin eleen "plus"-nappi pohjaan eleen
+ajaksi ja suorittamalla ele kääntämällä Arduinoa. Eleitä voi opettaa useaan kertaan.
+Eleiden opetettua kun painaa Run, Wekinator alkaa arvaamaan mitä elettä Arduinon
+liikkeet muistuttaa. Säädä threshold palkkia kunnes vihreä pallo vilahtaa elettä
+tehtäessä. Tarkemmat ohjeet Wekinatorin sivuilta:
+
+http://www.wekinator.org/detailed-instructions/#Dynamic_time_warping_in_Wekinator
+
+Kun Wekinator huomaa eleen, se lähettää OSC viestin. Wekinator myös lähettää jatkuvasti
+OSC viestejä eleiden arvauksien tilasta.
+---------------------------------------------------------------------
+
+
+[ OSCulator setup ]
+
+Käynnistä OSCulator ja laita input portiksi sama portti, joka on Wekinatorissa output
+portti. Esimerkeissä käytetään 8001. Jos Wekinator ei ole käytössä, käytä
+vakioporttia 8000.
+
+OSCulatoriin pitäisi ilmestyä OSC viesti jokaista Wekinator-elettä kohti ja
+erillinen viesti kun ele huomataan.
+
+Event type napista voi päättää millaisen viestin OSCulator lähettää kun se saa dataa.
+Oikeasta reunasta löytyy pieni nappi, jossa on 2 nuolta. Jos ei löydy, levitä ikkunaa.
+Napista näkymä vaihtuu ja datan arvojen rajoja voi säätää.
+
+Arduino lähettää tällä hetkellä kolme eri arvoa gyro-anturista:
+0 - Pitch (Pystysuuntainen kaltevuus)
+1 - Roll (Sivusuuntainen kaltevuus)
+2 - Yaw/Heading (Suunta)
+
+Arvojen rajat:
+Pitch: -90 - 90
+Roll: -180 - 180
+Yaw: 0 - 360
+
+Vakiona OSCulator asettaa input arvojen rajoiksi 0 - 1. Arvot täytyy säätää sopiviksi,
+muuten kallistukset eivät toimi halutusti.
+
+Samasta näkymästä voi säätää output arvojen rajat. MIDI-viestien rajat on yleensä
+0 - 127.
+
+HUOM: Jos asetat Event type napista lähetettäväksi viestiksi MIDI-viestin, output
+arvo rajataan automaattisesti väliin 0 - 127. Jos laitat itse rajan, jonka JÄLKEEN
+asetat tyypiksi MIDI-viestin, raja saattaa muuttua.
+
+Vakiona MIDI-viestit lähetetään Macin IAC-ajuriin, josta voi suoraan lukea MIDIä
+Abletonista.
+---------------------------------------------------------------------
+
+

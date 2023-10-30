@@ -1,7 +1,17 @@
+// this tracker script will read gyro data and
+// send it to an OSC address via wifi.
+// This doesn't connect to a custom server like the previous
+// versions.
+
 #include <Arduino_LSM6DS3.h>
+//#undef max
+//#undef min
+//#include <SPI.h>
+//#include <WiFiNINA.h>
 #include <ArduinoOSCWiFi.h>
 #include <MadgwickAHRS.h>
 #include <Math.h>
+//#include <iostream>
 
 Madgwick filter;
 const float sensorRate = 52.00;
@@ -18,14 +28,14 @@ unsigned long microsPerReading, microsPrevious;
 //char ssid[] = "crumbs";
 //char pass[] = "64795164";
 char* ssid = "uusikyla";
-char* pass = "painuhiiteen";
-//char* ssid = "GUEST SALO";
-//char* pass = "salowifi734";
-char* host = "192.168.1.92";
+char* pass = "";
+char* host = "192.168.1.102";
 int port = 8000;
 const IPAddress ip(192, 168, 1, 150);
 const IPAddress gateway(192, 168, 1, 1);
 const IPAddress subnet(255, 255, 255, 0);
+
+//WiFiClient client;
 
 bool gotReply = false;
   
@@ -35,11 +45,8 @@ float roll, pitch, yaw;
 float pitchFilteredOld;
 
 void setup() {
-  //Serial.begin(9600);
-  //while (!Serial);
 
   if (!IMU.begin()) {
-    //Serial.println("Failed to initialize IMU!");
     while (1);
   }
 
@@ -53,19 +60,13 @@ void setup() {
   WiFi.begin(ssid, pass);
   WiFi.config(ip, gateway, subnet);
   while (WiFi.status() != WL_CONNECTED) {
-      //Serial.print(".");
       delay(500);
   }
-  //Serial.print("WiFi connected, IP = ");
-  //Serial.println(WiFi.localIP());
 
   // you're connected now, so print out the data:
-  //Serial.print("You're connected to the network");
-  //printCurrentNet();
-  //printWifiData();
   delay(2000);
 
-  OscWiFi.publish(host, port, "/ard/1", pitchFilteredOld, roll, yaw, xAcc, yAcc, zAcc)
+  OscWiFi.publish(host, port, "/publish/value", pitchFilteredOld, roll, yaw)
         ->setFrameRate(sensorRate);
 }
 
@@ -88,12 +89,12 @@ void loop() {
       float pitchFiltered = pitchSmooth * pitch + (1 - pitchSmooth) * pitchFilteredOld; // low pass filter
       pitchFilteredOld = pitchFiltered;
   
-      //Serial.println(pitchFiltered);
-  
       OscWiFi.post();
       
       // increment previous time, so we keep proper pace
       microsPrevious = microsPrevious + microsPerReading;
     }
   }
+
+  //delay(15);  
 }
