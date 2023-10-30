@@ -18,16 +18,18 @@ unsigned long microsPerReading, microsPrevious;
 //char ssid[] = SECRET_SSID;        // your network SSID (name)
 //char pass[] = SECRET_PASS;    // your network password (use for WPA, or use as key for WEP)
 
-char* ssid = "mokkula_482925";
-char* pass = "HN7MEF63FJD";
+//char* ssid = "mokkula_482925";
+//char* pass = "HN7MEF63FJD";
 //char ssid[] = "crumbs";
 //char pass[] = "64795164";
-//char ssid[] = "uusikyla";
-//char pass[] = "painuhiiteen";
-char* host = "192.168.8.105";
+char* ssid = "uusikyla";
+char* pass = "painuhiiteen";
+//char* ssid = "GUEST SALO";
+//char* pass = "salowifi734";
+char* host = "192.168.1.92";
 int port = 8000;
-const IPAddress ip(192, 168, 8, 150);
-const IPAddress gateway(192, 168, 8, 1);
+const IPAddress ip(192, 168, 1, 150);
+const IPAddress gateway(192, 168, 1, 1);
 const IPAddress subnet(255, 255, 255, 0);
 
 //WiFiClient client;
@@ -40,11 +42,11 @@ float roll, pitch, yaw;
 float pitchFilteredOld;
 
 void setup() {
-  Serial.begin(9600);
-  while (!Serial);
+  //Serial.begin(9600);
+  //while (!Serial);
 
   if (!IMU.begin()) {
-    Serial.println("Failed to initialize IMU!");
+    //Serial.println("Failed to initialize IMU!");
     while (1);
   }
 
@@ -58,19 +60,19 @@ void setup() {
   WiFi.begin(ssid, pass);
   WiFi.config(ip, gateway, subnet);
   while (WiFi.status() != WL_CONNECTED) {
-      Serial.print(".");
+      //Serial.print(".");
       delay(500);
   }
-  Serial.print("WiFi connected, IP = ");
-  Serial.println(WiFi.localIP());
+  //Serial.print("WiFi connected, IP = ");
+  //Serial.println(WiFi.localIP());
 
   // you're connected now, so print out the data:
-  Serial.print("You're connected to the network");
-  printCurrentNet();
-  printWifiData();
+  //Serial.print("You're connected to the network");
+  //printCurrentNet();
+  //printWifiData();
   delay(2000);
 
-  OscWiFi.publish(host, port, "/publish/value", pitchFilteredOld, roll, yaw)
+  OscWiFi.publish(host, port, "/ard/1", pitchFilteredOld, roll, yaw, xAcc, yAcc, zAcc)
         ->setFrameRate(sensorRate);
 }
 
@@ -93,7 +95,7 @@ void loop() {
       float pitchFiltered = pitchSmooth * pitch + (1 - pitchSmooth) * pitchFilteredOld; // low pass filter
       pitchFilteredOld = pitchFiltered;
   
-      Serial.println(pitchFiltered);
+      //Serial.println(pitchFiltered);
   
       OscWiFi.post();
       
