@@ -18,31 +18,21 @@ unsigned long microsPerReading, microsPrevious;
 //char ssid[] = SECRET_SSID;        // your network SSID (name)
 //char pass[] = SECRET_PASS;    // your network password (use for WPA, or use as key for WEP)
 
-<<<<<<< HEAD
 //char* ssid = "mokkula_482925";
 //char* pass = "HN7MEF63FJD";
 //char ssid[] = "crumbs";
 //char pass[] = "64795164";
-char* ssid = "uusikyla";
-char* pass = "painuhiiteen";
+//char* ssid = "uusikyla";
+//char* pass = "painuhiiteen";
 //char* ssid = "TP-Link_38DB";
 //char* pass = "13452216";
-char* host = "192.168.1.92";
+char* ssid = "avcc-ard";
+char* pass = "avcc-intra-wlan";
+
+char* host = "192.168.2.100";
 int port = 8001;
-const IPAddress ip(192, 168, 1, 152);
-const IPAddress gateway(192, 168, 1, 1);
-=======
-char* ssid = "mokkula_482925";
-char* pass = "HN7MEF63FJD";
-//char ssid[] = "crumbs";
-//char pass[] = "64795164";
-// char* ssid = "uusikyla";
-// char* pass = "painuhiiteen";
-char* host = "192.168.8.102";
-int port = 8000;
-const IPAddress ip(192, 168, 8, 150);
-const IPAddress gateway(192, 168, 8, 1);
->>>>>>> b4f9dfb512b2eb88a1860999a4f625ffa509acca
+const IPAddress ip(192, 168, 2, 6);
+const IPAddress gateway(192, 168, 2, 1);
 const IPAddress subnet(255, 255, 255, 0);
 
 //WiFiClient client;
@@ -58,12 +48,24 @@ void setup() {
   Serial.begin(9600);
   while (!Serial);
 
-<<<<<<< HEAD
-=======
   Serial.println(ssid);
   Serial.println(pass);
 
->>>>>>> b4f9dfb512b2eb88a1860999a4f625ffa509acca
+  Serial.print("IDLE STATUS: ");
+  Serial.println(WL_IDLE_STATUS);
+  Serial.print("NO SSID AVAIL: ");
+  Serial.println(WL_NO_SSID_AVAIL);
+  Serial.print("SCAN COMPLETED: ");
+  Serial.println(WL_SCAN_COMPLETED);
+  Serial.print("CONNECTED: ");
+  Serial.println(WL_CONNECTED);
+  Serial.print("CONNECT FAILED: ");
+  Serial.println(WL_CONNECT_FAILED);
+  Serial.print("DISCONNECTED: ");
+  Serial.println(WL_DISCONNECTED);
+  Serial.print("NO SHIELD: ");
+  Serial.println(WL_NO_SHIELD);
+
   if (!IMU.begin()) {
     Serial.println("Failed to initialize IMU!");
     while (1);
@@ -79,7 +81,8 @@ void setup() {
   WiFi.begin(ssid, pass);
   WiFi.config(ip, gateway, subnet);
   while (WiFi.status() != WL_CONNECTED) {
-      Serial.print(".");
+      Serial.print("Wifi status: ");
+      Serial.println(WiFi.status());
       delay(500);
   }
   Serial.print("WiFi connected, IP = ");
@@ -91,11 +94,7 @@ void setup() {
   printWifiData();
   delay(2000);
 
-<<<<<<< HEAD
   OscWiFi.publish(host, port, "/ard/2", pitchFilteredOld, roll, yaw, xAcc, yAcc, zAcc)
-=======
-  OscWiFi.publish(host, port, "/publish/value", pitchFilteredOld, roll, yaw)
->>>>>>> b4f9dfb512b2eb88a1860999a4f625ffa509acca
         ->setFrameRate(sensorRate);
 }
 

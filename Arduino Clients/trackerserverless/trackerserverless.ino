@@ -17,15 +17,15 @@ unsigned long microsPerReading, microsPrevious;
 //char* pass = "HN7MEF63FJD";
 //char ssid[] = "crumbs";
 //char pass[] = "64795164";
-char* ssid = "uusikyla";
-char* pass = "painuhiiteen";
-//char* ssid = "GUEST SALO";
-//char* pass = "salowifi734";
-char* host = "192.168.1.92";
+//char* ssid = "uusikyla";
+//char* pass = "painuhiiteen";
+char* ssid = "avcc-ard";
+char* pass = "avcc-intra-wlan";
+char* host = "10.0.0.137";
 int port = 8000;
-const IPAddress ip(192, 168, 1, 150);
-const IPAddress gateway(192, 168, 1, 1);
-const IPAddress subnet(255, 255, 255, 0);
+const IPAddress ip(10, 0, 0, 58); // Arduino IPs 50-80
+const IPAddress gateway(10, 0, 0, 1);
+const IPAddress subnet(255, 255, 0, 0);
 
 bool gotReply = false;
   
@@ -65,7 +65,7 @@ void setup() {
   //printWifiData();
   delay(2000);
 
-  OscWiFi.publish(host, port, "/ard/1", pitchFilteredOld, roll, yaw, xAcc, yAcc, zAcc)
+  OscWiFi.publish(host, port, "/ard/8", pitchFilteredOld, roll, yaw, xAcc, yAcc, zAcc)
         ->setFrameRate(sensorRate);
 }
 
